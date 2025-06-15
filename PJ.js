@@ -7,18 +7,57 @@ import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import dotenv from 'dotenv';
 
-console.log(chalk.yellow('=== 批量私钥解密工具 (支持ETH/SOL) ==='));
+function displayBanner() {
+    console.clear();
+    
+    const asciiArt = [
+        "    ███████╗██╗  ██╗██████╗ ██╗███████╗███████╗",
+        "    ╚════██║██║ ██╔╝██╔══██╗██║██╔════╝██╔════╝",
+        "        ██╔╝█████╔╝ ██████╔╝██║███████╗███████╗",
+        "       ██╔╝ ██╔═██╗ ██╔══██╗██║╚════██║╚════██║",
+        "       ██║  ██║  ██╗██║  ██║██║███████║███████║",
+        "       ╚═╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝"
+    ];
+    
+    console.log('\n');
+    const colors = [chalk.red, chalk.yellow, chalk.green, chalk.blue, chalk.magenta, chalk.cyan];
+    asciiArt.forEach((line, index) => {
+        console.log(colors[index % colors.length].bold(line));
+    });
+    console.log('\n');
+    
+    console.log(chalk.cyan('╔══════════════════════════════════════════════════════════════╗'));
+    console.log(chalk.cyan('║') + chalk.yellow.bold('                  私钥批量解密工具V1                       ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.green('                 Crypto Private Key Decryptor               ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╠══════════════════════════════════════════════════════════════╣'));
+    console.log(chalk.cyan('║') + chalk.magenta('  🔐 支持格式: ETH (Ethereum) / SOL (Solana)              ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.blue('  🛡️  解密算法: AES-256-CBC + PBKDF2                        ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.white('  ⚡ 批量处理: 自动识别私钥类型并生成地址                 ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╠══════════════════════════════════════════════════════════════╣'));
+    console.log(chalk.cyan('║') + chalk.gray('  开发者: ') + chalk.yellow.bold('@7KRIS5') + chalk.gray('                                   ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.gray('  版本: 2025 安全加强版                                  ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╚══════════════════════════════════════════════════════════════╝'));
+    
+    console.log('\n' + chalk.red.bold('⚠️  安全提醒:'));
+    console.log(chalk.yellow('   • 请确保在安全环境中运行此工具'));
+    console.log(chalk.yellow('   • 解密后的私钥文件包含敏感信息，请妥善保管'));
+    console.log(chalk.yellow('   • 建议在离线环境中使用'));
+    
+    console.log('\n' + chalk.green.bold('📖 使用说明:'));
+    console.log(chalk.white('   1. 确保 .env 文件存在且包含加密私钥'));
+    console.log(chalk.white('   2. 输入正确的解密密码'));
+    console.log(chalk.white('   3. 解密结果将保存到 破解.csv 文件'));
+    
+    console.log('\n' + chalk.cyan('═'.repeat(62)) + '\n');
+}
 
-// 加载 .env 文件
 dotenv.config();
 
-// 创建 readline 接口用于用户输入密码
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
 
-// 异步询问密码
 async function askPassword(query) {
     return new Promise(resolve => {
         rl.question(query, answer => {
@@ -27,7 +66,6 @@ async function askPassword(query) {
     });
 }
 
-// 使用 PBKDF2 从密码和盐生成解密密钥
 async function generateEncryptionKey() {
     const password = await askPassword(chalk.magenta('请输入解密密码（至少8个字符）: '));
     if (!password || password.length < 8) {
@@ -49,7 +87,6 @@ async function generateEncryptionKey() {
     }
 }
 
-// 生成以太坊地址
 function generateEthereumAddress(privateKey) {
     try {
         const cleanedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
@@ -72,16 +109,13 @@ function generateEthereumAddress(privateKey) {
     }
 }
 
-// 生成 Solana 地址 (使用官方库)
 function generateSolanaAddress(privateKey) {
     try {
-        // 验证 Base58 格式并解码
         const decoded = bs58.decode(privateKey);
         if (decoded.length !== 64) {
             throw new Error('Solana 私钥必须是 64 字节');
         }
         
-        // 使用 Solana 官方方法创建密钥对
         const keypair = Keypair.fromSecretKey(decoded);
         const address = keypair.publicKey.toBase58();
         
@@ -100,21 +134,17 @@ function generateSolanaAddress(privateKey) {
     }
 }
 
-// 创建 CSV 文件 (无第三方依赖，完全安全)
 function createCSVFile(decryptedData, outputFile) {
     try {
-        // CSV 转义函数
         const escapeCSV = (str) => {
             if (str == null) return '';
             const stringified = String(str);
-            // 如果包含逗号、引号或换行符，需要用引号包围并转义内部引号
             if (stringified.includes(',') || stringified.includes('"') || stringified.includes('\n') || stringified.includes('\r')) {
                 return `"${stringified.replace(/"/g, '""')}"`;
             }
             return stringified;
         };
 
-        // 创建 CSV 内容
         const headers = 'Index,Chain,PrivateKey,Address\n';
         const csvRows = decryptedData.map(row => 
             `${escapeCSV(row.Index)},${escapeCSV(row.Chain)},${escapeCSV(row.PrivateKey)},${escapeCSV(row.Address)}`
@@ -122,7 +152,6 @@ function createCSVFile(decryptedData, outputFile) {
         
         const csvContent = headers + csvRows.join('\n');
         
-        // 写入文件
         fs.writeFileSync(outputFile, csvContent, 'utf8');
         console.log(chalk.green(`✅ CSV 文件已成功创建: ${outputFile}`));
         
@@ -132,19 +161,16 @@ function createCSVFile(decryptedData, outputFile) {
     }
 }
 
-// 解密私钥并生成文件
 async function decryptPrivateKeys() {
     const envFile = '.env';
     const outputFile = '破解.csv';
 
-    // 检查 .env 文件是否存在
     if (!fs.existsSync(envFile)) {
         console.log(chalk.red(`❌ .env 文件未找到`));
         rl.close();
         process.exit(1);
     }
 
-    // 生成解密密钥
     const encryptionKey = await generateEncryptionKey();
     if (!encryptionKey) {
         rl.close();
@@ -152,13 +178,11 @@ async function decryptPrivateKeys() {
     }
 
     try {
-        // 读取 .env 文件内容
         const envContent = fs.readFileSync(envFile, 'utf8')
             .split('\n')
             .map(line => line.trim())
             .filter(line => line.length > 0);
 
-        // 提取所有加密私钥
         const encryptedKeys = envContent
             .filter(line => line.startsWith('ENCRYPTED_KEY_'))
             .sort((a, b) => {
@@ -173,22 +197,19 @@ async function decryptPrivateKeys() {
             process.exit(1);
         }
 
-        // 存储解密结果
         const decryptedData = [];
         let ethCount = 0;
         let solCount = 0;
 
         console.log(chalk.blue('\n🔓 开始解密私钥...'));
 
-        // 解密每个私钥
         for (const [index, encryptedLine] of encryptedKeys.entries()) {
             const [, encryptedData] = encryptedLine.split('=');
             
-            // 支持新格式 (encrypted:iv:type) 和旧格式 (encrypted:iv)
             const parts = encryptedData.split(':');
             const encryptedHex = parts[0];
             const ivHex = parts[1];
-            const keyType = parts[2] || 'ETH'; // 默认为 ETH 以兼容旧格式
+            const keyType = parts[2] || 'ETH';
             
             if (!encryptedHex || !ivHex) {
                 console.log(chalk.red(`❌ 加密私钥 ${index} 格式无效，需包含加密数据和IV`));
@@ -196,7 +217,6 @@ async function decryptPrivateKeys() {
             }
 
             try {
-                // 解密
                 const decipher = crypto.createDecipheriv(
                     'aes-256-cbc',
                     Buffer.from(encryptionKey, 'hex'),
@@ -207,7 +227,6 @@ async function decryptPrivateKeys() {
 
                 let result;
                 
-                // 根据类型处理不同链的私钥
                 if (keyType === 'SOL') {
                     result = generateSolanaAddress(decrypted);
                     if (result.valid) {
@@ -223,7 +242,6 @@ async function decryptPrivateKeys() {
                         console.log(chalk.red(`❌ SOL 私钥 ${index} 解密后格式无效: ${result.error}`));
                     }
                 } else {
-                    // ETH 或未指定类型，按 ETH 处理
                     result = generateEthereumAddress(decrypted);
                     if (result.valid) {
                         ethCount++;
@@ -251,11 +269,9 @@ async function decryptPrivateKeys() {
             process.exit(1);
         }
 
-        // 创建 CSV 文件
         console.log(chalk.blue('\n📝 正在生成输出文件...'));
         createCSVFile(decryptedData, outputFile);
         
-        // 显示统计信息
         console.log(chalk.blue(`\n📊 解密统计:`));
         console.log(chalk.cyan(`   ETH 私钥: ${ethCount} 个`));
         console.log(chalk.cyan(`   SOL 私钥: ${solCount} 个`));
@@ -285,9 +301,19 @@ async function decryptPrivateKeys() {
     }
 }
 
-// 运行解密
-decryptPrivateKeys().catch(error => {
-    console.log(chalk.red(`❌ 程序运行失败: ${error.message}`));
-    rl.close();
+async function main() {
+    displayBanner();
+    
+    await new Promise(resolve => {
+        rl.question(chalk.green('按 Enter 键开始解密...'), () => {
+            resolve();
+        });
+    });
+    
+    await decryptPrivateKeys();
+}
+
+main().catch(error => {
+    console.error(chalk.red('程序运行出错:'), error);
     process.exit(1);
 });
