@@ -3,7 +3,55 @@ import crypto from 'crypto';
 import chalk from 'chalk';
 import readline from 'readline';
 
-console.log(chalk.yellow('=== 批量私钥加密工具 (支持ETH/SOL) ==='));
+// 
+function displayBanner() {
+    console.clear(); // 清屏
+    
+    // 7KRIS5
+    const asciiArt = [
+        "    ███████╗██╗  ██╗██████╗ ██╗███████╗███████╗",
+        "    ╚════██║██║ ██╔╝██╔══██╗██║██╔════╝██╔════╝",
+        "        ██╔╝█████╔╝ ██████╔╝██║███████╗███████╗",
+        "       ██╔╝ ██╔═██╗ ██╔══██╗██║╚════██║╚════██║",
+        "       ██║  ██║  ██╗██║  ██║██║███████║███████║",
+        "       ╚═╝  ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝"
+    ];
+    
+    // 
+    console.log('\n');
+    const colors = [chalk.red, chalk.yellow, chalk.green, chalk.blue, chalk.magenta, chalk.cyan];
+    asciiArt.forEach((line, index) => {
+        console.log(colors[index % colors.length].bold(line));
+    });
+    console.log('\n');
+    
+    // 
+    console.log(chalk.cyan('╔══════════════════════════════════════════════════════════════╗'));
+    console.log(chalk.cyan('║') + chalk.yellow.bold('                  私钥批量加密工具V1                       ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.green('                 Crypto Private Key Encryptor               ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╠══════════════════════════════════════════════════════════════╣'));
+    console.log(chalk.cyan('║') + chalk.magenta('  🔐 支持格式: ETH (Ethereum) / SOL (Solana)              ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.blue('  🛡️  加密算法: AES-256-CBC + PBKDF2                        ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.white('  ⚡ 批量处理: 自动识别私钥类型                           ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╠══════════════════════════════════════════════════════════════╣'));
+    console.log(chalk.cyan('║') + chalk.gray('  开发者: ') + chalk.yellow.bold('@7KRIS5') + chalk.gray('                                   ') + chalk.cyan('║'));
+    console.log(chalk.cyan('║') + chalk.gray('  版本: 2025 安全加强版                                  ') + chalk.cyan('║'));
+    console.log(chalk.cyan('╚══════════════════════════════════════════════════════════════╝'));
+    
+    // 安全提示
+    console.log('\n' + chalk.red.bold('⚠️  安全提醒:'));
+    console.log(chalk.yellow('   • 请妥善保管加密密码，丢失后无法恢复私钥'));
+    console.log(chalk.yellow('   • 建议在离线环境中运行此工具'));
+    console.log(chalk.yellow('   • 加密完成后请安全删除原始私钥文件'));
+    
+    // 操作指南
+    console.log('\n' + chalk.green.bold('📖 使用说明:'));
+    console.log(chalk.white('   1. 将私钥放入 privateKey.txt 文件（每行一个）'));
+    console.log(chalk.white('   2. 运行工具并设置加密密码'));
+    console.log(chalk.white('   3. 加密结果将保存到 .env 文件'));
+    
+    console.log('\n' + chalk.cyan('═'.repeat(62)) + '\n');
+}
 
 // 创建 readline 接口用于用户输入密码
 const rl = readline.createInterface({
@@ -146,5 +194,24 @@ async function encryptPrivateKeys() {
     }
 }
 
-// 运行加密
-encryptPrivateKeys();
+// 主程序入口
+async function main() {
+    // 显示启动横幅
+    displayBanner();
+    
+    // 等待用户按键继续
+    await new Promise(resolve => {
+        rl.question(chalk.green('按 Enter 键开始加密...'), () => {
+            resolve();
+        });
+    });
+    
+    // 运行加密
+    await encryptPrivateKeys();
+}
+
+// 启动程序
+main().catch(error => {
+    console.error(chalk.red('程序运行出错:'), error);
+    process.exit(1);
+});
