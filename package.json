@@ -1,17 +1,36 @@
 {
-  "name": "your-project",
+  "name": "Encryption-tools",
   "version": "1.0.0",
+  "description": "Cryptocurrency private key encryption and decryption tool supporting ETH and SOL",
   "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "encrypt": "node JM.js",
+    "decrypt": "node PJ.js",
+    "start": "node JM.js"
+  },
+  "keywords": [
+    "cryptocurrency",
+    "ethereum",
+    "solana",
+    "encryption",
+    "private-key",
+    "crypto"
+  ],
+  "author": "@7KRIS5",
+  "license": "MIT",
   "dependencies": {
-    "@solana/web3.js": "^1.98.2",
-    "bs58": "^6.0.0",
-    "chalk": "^5.4.1",
-    "dotenv": "^16.5.0",
-    "ethers": "^6.14.4",
-    "exceljs": "^4.4.0",
-    "p-limit": "^5.0.0",
-    "readline": "^1.3.0",
-    "solc": "^0.8.26",
-    "xlsx": "^0.18.5"
-  }
+    "@solana/web3.js": "^1.87.6",
+    "bs58": "^5.0.0",
+    "chalk": "^5.3.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+
 }
